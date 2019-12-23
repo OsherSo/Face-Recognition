@@ -87,7 +87,7 @@ class App extends Component {
       .then(response => {
         if (response) {
           axios
-            .put("http://localhost:3000/image", {
+            .put("https://kazoonface.herokuapp.com/image", {
               id: this.state.user.id
             })
             .then(res => {
