@@ -27,23 +27,25 @@ const particlesOptions = {
   }
 };
 
+const initialState = {
+  input: "",
+  imageUrl: "",
+  box: [],
+  route: "signin",
+  isSignedIn: false,
+  user: {
+    id: "",
+    name: "",
+    email: "",
+    entries: 0,
+    joined: ""
+  }
+};
+
 class App extends Component {
   constructor() {
     super();
-    this.state = {
-      input: "",
-      imageUrl: "",
-      box: {},
-      route: "signin",
-      isSignedIn: false,
-      user: {
-        id: "",
-        name: "",
-        email: "",
-        entries: 0,
-        joined: ""
-      }
-    };
+    this.state = initialState;
   }
 
   loadUser = data => {
@@ -59,17 +61,20 @@ class App extends Component {
   };
 
   calculateFaceLocation = data => {
-    const clarifaiFace =
-      data.outputs[0].data.regions[0].region_info.bounding_box;
+    const newData = data.outputs[0].data.regions.map(m => {
+      return m.region_info.bounding_box;
+    });
+
     const image = document.getElementById("inputimage");
     const width = Number(image.width);
     const height = Number(image.height);
-    return {
-      leftCol: clarifaiFace.left_col * width,
-      topRow: clarifaiFace.top_row * height,
-      rightCol: width - clarifaiFace.right_col * width,
-      bottomRow: height - clarifaiFace.bottom_row * height
-    };
+    for (let i of newData) {
+      i.leftCol = i.left_col * width;
+      i.topRow = i.top_row * height;
+      i.rightCol = width - i.right_col * width;
+      i.bottomRow = height - i.bottom_row * height;
+    }
+    return newData;
   };
 
   displayFaceBox = box => {
@@ -86,6 +91,7 @@ class App extends Component {
       .predict(Clarifai.FACE_DETECT_MODEL, this.state.input)
       .then(response => {
         if (response) {
+          console.log(response);
           axios
             .put("https://kazoonface.herokuapp.com/image", {
               id: this.state.user.id
@@ -103,7 +109,7 @@ class App extends Component {
 
   onRouteChange = route => {
     if (route === "signout") {
-      this.setState({ isSignedIn: false });
+      this.setState(initialState);
     } else if (route === "home") {
       this.setState({ isSignedIn: true });
     }
